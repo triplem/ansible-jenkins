@@ -1,9 +1,55 @@
 ---
-placeholder: 'placeholder'
-port: 8080
+
+# ---- Nginx settings ----
+
+jenkins_dest: /opt/jenkins
+jenkins_lib: /var/lib/jenkins
+
+port: 8081
 # plugins:
-#   - 'ldap'
-#   - 'github'
+#   - 'sbt'
+#   - 'maven'
 #   - 'translation'
-#   - 'preSCMbuildstep'
-#   - 'gravatar'
+#   - 'm2release'
+
+# ---- Nginx settings ----
+
+# Should nginx be enabled?
+jenkins_nginx_server_enabled: True
+
+# What domain names should the app be associated to?
+jenkins_nginx_domains: ['{{ ansible_fqdn }}']
+
+# If you want to edit any of the values for nginx below, you will need to copy
+# the whole variable over even if you need to edit 1 value.
+#
+# Consult the debops.nginx documentation if needed.
+
+# Configure the upstream.
+jenkins_nginx_upstream:
+  enabled: '{{ jenkins_nginx_server_enabled }}'
+  name: 'jenkins'
+  server: "localhost:{{ port }}"
+
+# Configure the sites-available.
+jenkins_nginx_server:
+  enabled: '{{ jenkins_nginx_server_enabled }}'
+  default: False
+  name: '{{ jenkins_nginx_domains }}'
+
+  error_pages:
+    '404': '/404.html'
+    '422': '/422.html'
+    '500': '/500.html'
+    '502 503 504': '/502.html'
+
+  location_list:
+    - pattern: '/'
+      options: |
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        if (!-f $request_filename) {
+            proxy_pass http://{{ jenkins_nginx_upstream.name }};
+            break;
+        }

@@ -1,9 +1,17 @@
 ---
+
+dependencies:
+  - role: debops.nginx
+    nginx_servers: [ '{{ jenkins_nginx_server }}' ]
+    nginx_upstreams: [ '{{ jenkins_nginx_upstream }}' ]
+    when: (jenkins_nginx_server_enabled is defined and jenkins_nginx_server_enabled)
+    tags: nginx
+
 galaxy_info:
-  author: Thomas Berton
+  author: 'Thomas Berton, Markus M. May'
   description: Role to install Jenkins and install/update plugins
   license: MIT
-  min_ansible_version: 1.4
+  min_ansible_version: 1.7
   platforms:
   - name: Ubuntu
     versions:
@@ -11,12 +19,7 @@ galaxy_info:
   - name: Debian
     versions:
     - wheezy
+    - jessie
   categories:
-  - development
-
-dependencies: []
-  # List your role dependencies here, one per line. Only
-  # dependencies available via galaxy should be listed here.
-  # Be sure to remove the '[]' above if you add dependencies
-  # to this list.
-  
+    - development
+    - web
